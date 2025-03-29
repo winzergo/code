@@ -1,6 +1,3 @@
-Below is an updated version of your code that now supports YouTube channel URLs using handles (e.g. `https://www.youtube.com/@drmarkhyman/videos`). The new branch detects URLs containing "@" and extracts the handle to look up the corresponding channel ID via the YouTube Data API.
-
-```python
 import streamlit as st
 import subprocess
 import sys
@@ -92,17 +89,3 @@ if channel_url and video_title_input:
                 st.error("No videos found with the given title on this channel.")
     except Exception as e:
         st.error(f'Error: {str(e)}')
-```
-
-### Explanation
-
-1. **New Branch for Handle URLs:**  
-   The code now checks if the channel URL contains `"@"`. It extracts the handle (for example, `"drmarkhyman"` from `https://www.youtube.com/@drmarkhyman/videos`) and uses the YouTube API's search endpoint to find the channel with that handle.
-
-2. **Other URL Formats:**  
-   Existing branches for `/channel/`, `/user/`, and `/c/` URLs remain unchanged.
-
-3. **Video Search and Transcript Extraction:**  
-   Once the channel ID is determined, the code searches within that channel for a video whose title matches the input and then retrieves its transcript.
-
-This update should now handle URLs like `https://www.youtube.com/@drmarkhyman/videos` without returning an error.
