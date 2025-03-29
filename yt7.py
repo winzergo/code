@@ -2,7 +2,7 @@ import streamlit as st
 from googleapiclient.discovery import build
 import re
 
-API_KEY = 'YOUR_API_KEY'
+API_KEY = 'AIzaSyA23ZOgNrv1CrIHE8Ckma3Hc5y0jZ9Xkuw'
 
 st.title('YouTube Channel Video Title Extractor (All Videos)')
 
