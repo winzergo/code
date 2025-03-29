@@ -1,10 +1,20 @@
 import streamlit as st
+import subprocess
+import sys
 from googleapiclient.discovery import build
 import re
 
 API_KEY = 'YOUR_YOUTUBE_API_KEY'
 
 st.title('YouTube Channel Video Title Extractor')
+
+# Check if the necessary packages are installed
+try:
+    from googleapiclient.discovery import build
+except ImportError:
+    st.warning("googleapiclient not found. Attempting to install...")
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'google-api-python-client', 'google-auth', 'google-auth-oauthlib', 'google-auth-httplib2'])
+    from googleapiclient.discovery import build
 
 channel_url = st.text_input('Enter YouTube Channel URL (e.g., https://www.youtube.com/@drmarkhyman):')
 
