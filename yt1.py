@@ -1,5 +1,5 @@
 import streamlit as st
-from apiclient.discovery import build
+from googleapiclient.discovery import build
 import re
 
 API_KEY = 'YOUR_YOUTUBE_API_KEY'
