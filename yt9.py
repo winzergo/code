@@ -1,3 +1,6 @@
+Below is an updated version of your code that now supports YouTube channel URLs using handles (e.g. `https://www.youtube.com/@drmarkhyman/videos`). The new branch detects URLs containing "@" and extracts the handle to look up the corresponding channel ID via the YouTube Data API.
+
+```python
 import streamlit as st
 import subprocess
 import sys
@@ -20,11 +23,12 @@ API_KEY = 'AIzaSyA23ZOgNrv1CrIHE8Ckma3Hc5y0jZ9Xkuw'
 st.title('YouTube Video Transcript Extractor (No Line Breaks)')
 
 # Input fields for channel URL and video title
-channel_url = st.text_input('Enter YouTube Channel URL (e.g., https://www.youtube.com/channel/UCxxx):')
+channel_url = st.text_input('Enter YouTube Channel URL (e.g., https://www.youtube.com/channel/UCxxx, https://www.youtube.com/@username, or https://www.youtube.com/c/CustomName):')
 video_title_input = st.text_input('Enter the YouTube Video Title:')
 
 if channel_url and video_title_input:
     try:
+        channel_id = None
         # Extract the channel ID based on the URL format
         if "channel" in channel_url:
             channel_id = re.search(r'/channel/([\w\d_-]+)', channel_url).group(1)
@@ -36,20 +40,29 @@ if channel_url and video_title_input:
                 channel_id = response['items'][0]['id']
             else:
                 st.error("Channel not found for given username.")
-                channel_id = None
         elif "/c/" in channel_url:
-            # For custom URLs, search for the channel using the custom name
             custom_name = re.search(r'/c/([\w\d_-]+)', channel_url).group(1)
             youtube = build('youtube', 'v3', developerKey=API_KEY)
-            search_response = youtube.search().list(q=custom_name, type='channel', part='snippet', maxResults=1).execute()
+            search_response = youtube.search().list(
+                q=custom_name, type='channel', part='snippet', maxResults=1
+            ).execute()
             if search_response['items']:
                 channel_id = search_response['items'][0]['id']['channelId']
             else:
                 st.error("Channel not found for given custom URL.")
-                channel_id = None
+        elif "@" in channel_url:
+            # Handle URLs like https://www.youtube.com/@drmarkhyman/videos
+            handle = re.search(r'@([\w\d_-]+)', channel_url).group(1)
+            youtube = build('youtube', 'v3', developerKey=API_KEY)
+            search_response = youtube.search().list(
+                q=handle, type='channel', part='snippet', maxResults=1
+            ).execute()
+            if search_response['items']:
+                channel_id = search_response['items'][0]['id']['channelId']
+            else:
+                st.error("Channel not found for given handle URL.")
         else:
             st.error("Invalid channel URL format.")
-            channel_id = None
 
         if channel_id:
             st.write(f'Channel ID: {channel_id}')
@@ -64,11 +77,10 @@ if channel_url and video_title_input:
             ).execute()
 
             if search_response['items']:
-                # Select the first matching video (optionally, you could implement a more refined match)
+                # Select the first matching video (optionally, refine the matching further)
                 video_item = search_response['items'][0]
                 video_id = video_item['id']['videoId']
                 st.write(f"Video found: {video_item['snippet']['title']} (ID: {video_id})")
-
                 try:
                     transcript = YouTubeTranscriptApi.get_transcript(video_id)
                     transcript_text = ' '.join([line['text'] for line in transcript])
@@ -80,3 +92,17 @@ if channel_url and video_title_input:
                 st.error("No videos found with the given title on this channel.")
     except Exception as e:
         st.error(f'Error: {str(e)}')
+```
+
+### Explanation
+
+1. **New Branch for Handle URLs:**  
+   The code now checks if the channel URL contains `"@"`. It extracts the handle (for example, `"drmarkhyman"` from `https://www.youtube.com/@drmarkhyman/videos`) and uses the YouTube API's search endpoint to find the channel with that handle.
+
+2. **Other URL Formats:**  
+   Existing branches for `/channel/`, `/user/`, and `/c/` URLs remain unchanged.
+
+3. **Video Search and Transcript Extraction:**  
+   Once the channel ID is determined, the code searches within that channel for a video whose title matches the input and then retrieves its transcript.
+
+This update should now handle URLs like `https://www.youtube.com/@drmarkhyman/videos` without returning an error.
